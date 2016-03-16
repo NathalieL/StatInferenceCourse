@@ -1,0 +1,151 @@
+---
+title: "Exponential Distribution and Central Limit Theorem Simulation"
+author: "Nathalie Lambrecht"
+date: "March 14, 2016"
+output: pdf_document
+---
+
+###Overview
+
+The Central Limit Theorem (CLT) states that as sample size increases the distribution of random independent and identically distributed variables approach standard normal. In the following simulation we examine the exponential curve, characterized by a mean of 1/lambda and standard deviation of 1/lambda, where lambda is the rate parameter. We will examine the distribution of 1000 random samples from the exponential curve with lambda = 0.2, and then the distribution of 1000 averages of 40 random samples from the curve, in order to see the Central Limit Theorem at work. 
+
+###Simulations
+
+For all simulations set lambda equal to 0.2. 
+
+####Simulation 1: Distribution of a Large Collection of Random Exponentials
+
+For our first simulation, we will examine 1000 sample values from the exponential distribution. 
+
+```{r random exponentials, fig.show='hide'}
+#Set the variables.
+nsim = 1000
+lambda = 0.2
+
+#Use set.seed() to ensure reproducibility.
+set.seed(29)
+
+#Draw 1000 sample values from the exponential distribution.
+data <- rexp(nsim, lambda)
+
+#Create a histogram to show the distribution.
+hist(data, breaks=30, ylab="Frequency", xlab="Value", ylim=c(0, 200), xlim=c(0, 30), 
+     main=expression("1000 Samples of Exponential Distribution ("*lambda*"=0.2)"))
+```
+
+####Simulation 2: Distribution of a Large Collection of Averages of 40 Exponentials
+
+For our second simulation, we will run 1000 averages of 40 sample values from the same exponential distribution. We will use this simulation to investigate the mean, standard deviation, and normality of the distribution. 
+
+```{r average exponentials, fig.show='hide'}
+#Set the variables.
+nsim = 1000
+lambda = 0.2
+n = 40
+
+#Use set.seed() to ensure reproducibility.
+set.seed(29)
+
+#Run 1000 averages of 40 samples from the exponential distribution and find their means.
+datam=NULL
+for(i in 1:nsim) datam = c(datam, mean(rexp(n, lambda)))
+
+#Create a histogram to show the distribution.
+hist(datam, breaks=30, ylab="Frequency", xlab="Value", ylim=c(0, 150), xlim=c(2, 8), 
+     main=expression("1000 Averages of 40 Samples of Exponential Distribution ("*lambda*"=0.2)"))
+```
+
+###Sample Mean versus Theoretical Mean
+
+The mean is a measure of the center of a density. The sample mean is the average of the values in our sample while the theoretical mean is the true mean of the distribution. The sample mean is an estimate of the theoretical mean. For the exponential distribution, the theoretical mean is 1/lambda.
+
+```{r mean}
+#Theoretical Mean
+tmean = (1/lambda)
+tmean
+
+#Sample Mean
+smean = mean(datam)
+smean
+```
+
+The theoretical mean is 5.000 while the sample mean is 4.996. We were able to closely approximate the true mean of the distribution with a large n. 
+
+As can be seen below (Figure 1), the sample mean (blue dashed line) closely approximates the theoretical mean (orange line). 
+
+```{r figure 1, echo=FALSE}
+hist(datam, breaks=30, ylab="Frequency", xlab="Value", ylim=c(0, 150), xlim=c(2, 8), 
+     main=expression("Fig 1. 1000 Averages of 40 Samples of Exponential Distribution ("*lambda*"=0.2)"))
+abline(v=mean(datam), col="blue", lty=2, lwd=2)
+abline(v=1/0.2, col="orange", lty=1, lwd=1.5)
+legend("topright", c("Sample Mean", "Theoretical Mean"), bty="n", lty=c(2,1), col=c("blue","orange"))
+```
+
+###Sample Variance versus Theoretical Variance
+
+The variance is a measure of the spread of a distribution. The sample variance is an estimate of the theoretical variance. The theoretical variance of the exponential distribution is (1/lambda)<sup>2</sup>. To find the theoretical variance of the sample mean, we divide by n, in the case n=40.
+
+```{r variance}
+#Theoretical Variance
+tvar = (1/(.2^2))/40
+tvar
+
+#Sample Variance
+svar = var(datam)
+svar
+```
+
+The theoretical variance is 0.625 while the sample variance is 0.632. We were able to closely approximate the true variance of the distribution with a large n. 
+
+As can be seen in figure 2, the sample variance (blue dashed line) closely approximates the theoretical variance (orange line). 
+
+```{r figure 2, echo=FALSE}
+hist(datam, breaks=30, ylab="Frequency", xlab="Value", ylim=c(0, 150), xlim=c(2, 8), 
+     main=expression("Fig 2. 1000 Averages of 40 Samples of Exponential Distribution ("*lambda*"=0.2)"))
+abline(v=5+0.625, col="blue", lty=2, lwd=2)
+abline(v=5-0.625, col="blue", lty=2, lwd=2)
+abline(v=mean(datam)+var(datam), col="orange", lty=1, lwd=1.5)
+abline(v=mean(datam)-var(datam), col="orange", lty=1, lwd=1.5)
+legend("topright", c("Sample Variance", "Theoretical Variance"), bty="n", lty=c(2,1), col=c("blue","orange"))
+```
+
+###Distribution
+According to the CLT, our averages of the exponential distribution should approach the normal distribution, given a large sample size. The normal distribution is in the shape of a bell curve. 
+
+In figure 3 we show the distribution of 1000 random exponentials (simulation 1). The distribution is in the shape of the exponential distribution. In contrast, a large collect of averages of 40 random exponentials is approximately normal (figure 4). We have overalyed our distribution with the normal curve (purple line). 
+
+```{r figure 3, echo=FALSE}
+hist(data, breaks=30, ylab="Frequency", xlab="Value", ylim=c(0, 200), xlim=c(0, 30), 
+     main=expression("Fig 3. 1000 Samples of Exponential Distribution ("*lambda*"=0.2)"))
+```
+
+```{r figure 4, echo=FALSE}
+h<-hist(datam, breaks=30, ylab="Frequency", xlab="Value", ylim=c(0, 150), xlim=c(2, 8), 
+     main=expression("Fig 4. 1000 Averages of 40 Samples of Exponential Distribution ("*lambda*"=0.2)"))
+xfit<-seq(min(datam),max(datam),length=40) 
+yfit<-dnorm(xfit,mean=mean(datam),sd=sd(datam)) 
+yfit <- yfit*diff(h$mids[1:2])*length(datam) 
+lines(xfit, yfit, col="purple", lwd=2)
+legend("topright", "Normal Curve", bty="n", lty=1, lwd=2, col="purple")
+```
+
+###Appendix
+
+Below is the code for figures 3 and 4. 
+
+```{r figure 3 code, fig.show='hide'}
+#Figure 3
+hist(data, breaks=30, ylab="Frequency", xlab="Value", ylim=c(0, 200), xlim=c(0, 30), 
+     main=expression("Fig 3. 1000 Samples of Exponential Distribution ("*lambda*"=0.2)"))
+```
+
+```{r figure 4 code, fig.show='hide'}
+#Figure 4
+h<-hist(datam, breaks=30, ylab="Frequency", xlab="Value", ylim=c(0, 150), xlim=c(2, 8), 
+     main=expression("Fig 4. 1000 Averages of 40 Samples of Exponential Distribution ("*lambda*"=0.2)"))
+xfit<-seq(min(datam),max(datam),length=40) 
+yfit<-dnorm(xfit,mean=mean(datam),sd=sd(datam)) 
+yfit <- yfit*diff(h$mids[1:2])*length(datam) 
+lines(xfit, yfit, col="purple", lwd=2)
+legend("topright", "Normal Curve", bty="n", lty=1, lwd=2, col="purple")
+```
